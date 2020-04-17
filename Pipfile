@@ -16,6 +16,7 @@ chart_studio = "*"
 pandas = "*"
 tqdm = "*"
 more_itertools = "*"
+scipy = "*"
 
 [requires]
 python_version = "3.7"
