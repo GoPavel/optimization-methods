@@ -1,7 +1,8 @@
 import one_dim_search.golden as gold
 from descent.grad import gradient_descent, generic_step_chooser
-
+from descent.newton import newton_descent
 import numpy as np
+import pandas as pd
 from scipy.special import expit
 from functools import partial
 
@@ -50,14 +51,21 @@ class LogisticModel:
         self.A = np.transpose(self.X * self.y.reshape((self.objects_count, 1)))
 
         if self.solver == 'gradient':
-            _, self.w = gradient_descent(f=self._Q, f_grad=self._Q_grad, start=start_w,
-                                         step_chooser=generic_step_chooser(gold.search), eps=self.eps)
+            self.w = gradient_descent(f=self._Q, f_grad=self._Q_grad, start=start_w,
+                                      step_chooser=generic_step_chooser(gold.search), eps=self.eps)
         else:
-            # uncomment when will be written
-            #_, self.w = newton_descent(f=self._Q, f_grad=self._Q_grad, f_hess=self._Q_hess, start=start_w, eps=self.eps)
+            self.w = newton_descent(f=self._Q, f_grad=self._Q_grad, f_hess=self._Q_hess, start=start_w, eps=self.eps)
             pass
 
-    def predict(self):
+    def predict(self, X):
         if self.w is None:
             raise RuntimeError("Call fit function before predict")
-        return np.sign(np.matmul(self.X, self.w)).astype(int)
+        X = _add_pseudo_coord(X)
+        return np.sign(np.matmul(X, self.w)).astype(int)
+
+
+def read_dataset(path):
+    data = pd.read_csv(path)
+    X = data.iloc[:, :-1].values
+    y = data.iloc[:, -1].apply(lambda c: 1 if c == 'P' else -1).values
+    return X, y

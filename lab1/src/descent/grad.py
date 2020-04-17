@@ -18,10 +18,9 @@ _constant_step_chooser = get_constant_step_chooser(1e-3)
 def generic_step_chooser(one_dim_search: Callable):
     def step_chooser(f, x_k, cur_grad):
         phi = lambda h: f(x_k - h * cur_grad)
-        l, r = lin.search(0, 0.01, f=phi, eps=1e-3, multiplier=2)
-        l, r = last(one_dim_search(l, r, f=phi, eps=1e-5))
+        l, r = lin.search(0, delta=0.01, f=phi, eps=1e-3, multiplier=2)
+        l, r = one_dim_search(l, r, f=phi, eps=1e-5)
         return (l + r) / 2
-
     return step_chooser
 
 

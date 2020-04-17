@@ -17,6 +17,7 @@ pandas = "*"
 tqdm = "*"
 more_itertools = "*"
 scipy = "*"
+sklearn = "*"
 
 [requires]
 python_version = "3.7"
