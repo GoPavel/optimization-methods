@@ -20,10 +20,11 @@ def newton_descent_iter(*, f: Callable[[np.ndarray], float],
         hess = f_hess(cur)
         hess_inv = np.linalg.inv(hess)
 
-        if np.linalg.norm(hess) ** 2 <= eps * np.linalg.norm(start_hess) ** 2:
+        delta = np.matmul(grad, hess_inv)
+        if np.linalg.norm(delta) < eps:
             return
 
-        cur = cur - np.matmul(grad, hess_inv)
+        cur = cur - delta
         yield cur
         iter_cnt += 1
 
