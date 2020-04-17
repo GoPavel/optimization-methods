@@ -4,8 +4,15 @@ import one_dim_search.linear as lin
 from more_itertools import last
 
 
-def constant_step_chooser(f, x_k: np.ndarray, cur_grad: np.ndarray):
-    return 1e-3
+def get_constant_step_chooser(c: float):
+    def constant_step_chooser(f, x_k: np.ndarray, cur_grad: np.ndarray):
+        # g(a) = f(x_k - a * f_grad(x_k))
+        return c
+
+    return constant_step_chooser
+
+
+_constant_step_chooser = get_constant_step_chooser(1e-3)
 
 
 def generic_step_chooser(one_dim_search: Callable):
@@ -19,14 +26,15 @@ def generic_step_chooser(one_dim_search: Callable):
 
 
 def gradient_descent_iter(*, f: Callable[[np.ndarray], float], f_grad: Callable[[np.ndarray], np.ndarray], eps: float,
-                          start: np.ndarray, step_chooser=constant_step_chooser) -> Iterator[Tuple[int, np.ndarray]]:
+                          start: np.ndarray, step_chooser=_constant_step_chooser,
+                          _verbose: int = 10000) -> Iterator[Tuple[np.ndarray]]:
     assert 0 <= 1 - eps < 1
     cur = start
     yield cur
     start_grad = f_grad(start)
     iter_cnt = 0
     while True:
-        if iter_cnt and iter_cnt % 100000 == 0:
+        if iter_cnt and iter_cnt % _verbose == 0:
             print("gradient iter: %d" % iter_cnt)
             print(cur)
         cur_grad = f_grad(cur)
@@ -40,7 +48,7 @@ def gradient_descent_iter(*, f: Callable[[np.ndarray], float], f_grad: Callable[
         iter_cnt += 1
 
 
-def gradient_descent(*args, **kwargs) -> Tuple[int, np.array]:
+def gradient_descent(*args, **kwargs) -> Tuple[np.array]:
     return last(gradient_descent_iter(*args, **kwargs))
 
 
