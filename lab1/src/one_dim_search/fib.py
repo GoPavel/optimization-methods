@@ -1,9 +1,11 @@
 from typing import Callable, Iterator, Tuple
 
+from more_itertools import last
+
 fib = [1, 1, 2]  # 3, 5, 8
 
 
-def search(l: float, r: float, *, f: Callable[[float], float], eps: float) -> Iterator[Tuple[float, float]]:
+def search_iter(l: float, r: float, *, f: Callable[[float], float], eps: float) -> Iterator[Tuple[float, float]]:
     # precalc fib
     global fib
     n = 0
@@ -34,3 +36,7 @@ def search(l: float, r: float, *, f: Callable[[float], float], eps: float) -> It
             f2 = f1
             f1 = f(x1)
         yield l, r
+
+
+def search(*args, **kwargs) -> Tuple[float, float]:
+    return last(search_iter(*args, **kwargs))

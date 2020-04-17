@@ -1,7 +1,9 @@
 from typing import Callable, Iterator, Tuple
 
+from more_itertools import last
 
-def search(l: float, r: float, *, f: Callable[[float], float], eps: float) -> Iterator[Tuple[float, float]]:
+
+def search_iter(l: float, r: float, *, f: Callable[[float], float], eps: float) -> Iterator[Tuple[float, float]]:
     delta = eps * 0.4
     yield l, r
     while (r - l) > eps:
@@ -17,3 +19,7 @@ def search(l: float, r: float, *, f: Callable[[float], float], eps: float) -> It
             l = x1
             r = x2
         yield l, r
+
+
+def search(*args, **kwargs) -> Tuple[float, float]:
+    return last(search_iter(*args, **kwargs))

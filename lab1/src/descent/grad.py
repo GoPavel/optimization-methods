@@ -1,5 +1,6 @@
 from typing import Callable, Iterator, Tuple
 import numpy as np
+from more_itertools import last
 
 
 def constant_step_chooser(f, x_k: np.ndarray, cur_grad: np.ndarray):
@@ -7,10 +8,11 @@ def constant_step_chooser(f, x_k: np.ndarray, cur_grad: np.ndarray):
     return 1e-3
 
 
-def gradient_descent(*, f: Callable[[np.ndarray], float], f_grad: Callable[[np.ndarray], np.ndarray], eps: float,
-                     start: np.ndarray, step_chooser=constant_step_chooser) -> Tuple[int, np.ndarray]:
+def gradient_descent_iter(*, f: Callable[[np.ndarray], float], f_grad: Callable[[np.ndarray], np.ndarray], eps: float,
+                     start: np.ndarray, step_chooser=constant_step_chooser) -> Iterator[Tuple[int, np.ndarray]]:
     assert 0 <= 1 - eps < 1
     cur = start
+    yield cur
     start_grad = f_grad(start)
     iter_cnt = 0
     while True:
@@ -20,17 +22,21 @@ def gradient_descent(*, f: Callable[[np.ndarray], float], f_grad: Callable[[np.n
         cur_grad = f_grad(cur)
 
         if np.linalg.norm(cur_grad) ** 2 <= eps * np.linalg.norm(start_grad) ** 2:
-            return iter_cnt, cur
+            return
 
         step = step_chooser(f, cur, cur_grad)
         cur = cur - step * f_grad(cur)
+        yield cur
         iter_cnt += 1
+
+
+def gradient_descent(*args, **kwargs) -> Tuple[int, np.array]:
+    return last(gradient_descent_iter(*args, **kwargs))
 
 
 # f(x,y) = x^2 + y^2
 
 if __name__ == '__main__':
-
     def f(p):
         return p[0] ** 2 + p[1] ** 2
 

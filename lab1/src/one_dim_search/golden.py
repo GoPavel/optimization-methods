@@ -1,8 +1,10 @@
 from typing import Callable, Iterator, Tuple
 from math import sqrt
 
+from more_itertools import last
 
-def search(l, r, *, f: Callable[[float], float], eps: float) -> Iterator[Tuple[float, float]]:
+
+def search_iter(l, r, *, f: Callable[[float], float], eps: float) -> Iterator[Tuple[float, float]]:
     phi = (1 + sqrt(5)) / 2
 
     # optimization to calculate only one f-value in each step
@@ -32,3 +34,7 @@ def search(l, r, *, f: Callable[[float], float], eps: float) -> Iterator[Tuple[f
         else:
             break
         yield l, r
+
+
+def search(*args, **kwargs) -> Tuple[float, float]:
+    return last(search_iter(*args, **kwargs))
