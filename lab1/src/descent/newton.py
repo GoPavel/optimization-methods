@@ -1,6 +1,7 @@
 from typing import Callable, Iterator
 import numpy as np
 from more_itertools import last
+from scipy.linalg import cho_factor, cho_solve
 
 
 def newton_descent_iter(*, f: Callable[[np.ndarray], float],
@@ -17,7 +18,11 @@ def newton_descent_iter(*, f: Callable[[np.ndarray], float],
             print(cur)
         grad = f_grad(cur)
         hess = f_hess(cur)
-        hess_inv = np.linalg.inv(hess)
+
+        if cho_mode:
+            hess_inv = cho_solve(cho_factor(hess), np.eye(hess.shape[0]))
+        else:
+            hess_inv = np.linalg.inv(hess)
 
         delta = np.matmul(grad, hess_inv)
         if np.linalg.norm(delta) < eps:
