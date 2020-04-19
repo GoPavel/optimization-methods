@@ -25,6 +25,20 @@ def generic_step_chooser(one_dim_search: Callable):
     return step_chooser
 
 
+def _print_debug_info(iter_cnt, cur, cur_grad, start_grad):
+    print(f'gradient iter: {iter_cnt}')
+    if len(cur) < 7:
+        print(f'cur: {cur}')
+    if len(cur_grad) < 7:
+        print(f'cur_grad: {cur_grad}')
+    norms = {
+        'cur_norm': np.linalg.norm(cur),
+        'cur_grad': np.linalg.norm(cur_grad),
+        'start_grad_norm': np.linalg.norm(start_grad)
+    }
+    print(norms)
+
+
 def gradient_descent_iter(*, f: Callable[[np.ndarray], float], f_grad: Callable[[np.ndarray], np.ndarray], eps: float,
                           start: np.ndarray, step_chooser=_constant_step_chooser,
                           _verbose: int = 10000, stop_criterion="rel-grad") -> Iterator[Tuple[np.ndarray]]:
@@ -35,16 +49,16 @@ def gradient_descent_iter(*, f: Callable[[np.ndarray], float], f_grad: Callable[
     start_grad = f_grad(start)
     iter_cnt = 0
     while True:
-        if iter_cnt and iter_cnt % _verbose == 0:
-            print("gradient iter: %d" % iter_cnt)
-            print(cur)
         cur_grad = f_grad(cur)
+        if iter_cnt and iter_cnt % _verbose == 0:
+            _print_debug_info(iter_cnt, cur, cur_grad, start_grad)
+
         step = step_chooser(f, cur, cur_grad)
         next_cur = cur - step * f_grad(cur)
 
         if stop_criterion == "grad" and np.linalg.norm(cur_grad) < eps or \
-           stop_criterion == "rel-grad" and np.linalg.norm(cur_grad) ** 2 <= eps * np.linalg.norm(start_grad) ** 2 or\
-           stop_criterion == "value" and abs(f(next_cur) - f(cur)) < eps:
+            stop_criterion == "rel-grad" and np.linalg.norm(cur_grad) ** 2 <= eps * np.linalg.norm(start_grad) ** 2 or \
+            stop_criterion == "value" and abs(f(next_cur) - f(cur)) < eps:
             return
 
         cur = next_cur
