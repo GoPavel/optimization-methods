@@ -7,8 +7,8 @@ from scipy.linalg import cho_factor, cho_solve
 def newton_descent_iter(*, f: Callable[[np.ndarray], float],
                         f_grad: Callable[[np.ndarray], np.ndarray],
                         f_hess: Callable[[np.ndarray], np.ndarray], eps: float = 1e-5,
-                        start: np.ndarray, cho_mode=False) -> Iterator[np.ndarray]:
-    assert 0 <= 1 - eps < 1
+                        start: np.ndarray, cho_mode=False, max_iters=100) -> Iterator[np.ndarray]:
+    assert 0 < eps <= 1
     cur = start
     yield cur
     iter_cnt = 0
@@ -27,6 +27,8 @@ def newton_descent_iter(*, f: Callable[[np.ndarray], float],
         delta = np.matmul(grad, hess_inv)
         if np.linalg.norm(delta) < eps:
             return
+        if iter_cnt == max_iters:
+            raise ArithmeticError()
 
         cur = cur - delta
         yield cur
