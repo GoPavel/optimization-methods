@@ -21,12 +21,13 @@ def generic_step_chooser(one_dim_search: Callable):
         l, r = lin.search(0, delta=0.01, f=phi, eps=1e-3, multiplier=2)
         l, r = one_dim_search(l, r, f=phi, eps=1e-5)
         return (l + r) / 2
+
     return step_chooser
 
 
 def gradient_descent_iter(*, f: Callable[[np.ndarray], float], f_grad: Callable[[np.ndarray], np.ndarray], eps: float,
                           start: np.ndarray, step_chooser=_constant_step_chooser,
-                          _verbose: int = 10000) -> Iterator[Tuple[np.ndarray]]:
+                          _verbose: int = 10000, stop_criterion="grad") -> Iterator[Tuple[np.ndarray]]:
     assert 0 <= 1 - eps < 1
     cur = start
     yield cur
@@ -38,7 +39,8 @@ def gradient_descent_iter(*, f: Callable[[np.ndarray], float], f_grad: Callable[
             print(cur)
         cur_grad = f_grad(cur)
 
-        if np.linalg.norm(cur_grad) ** 2 <= eps * np.linalg.norm(start_grad) ** 2:
+        if stop_criterion == "grad" and np.linalg.norm(cur_grad) < eps or \
+           stop_criterion == "rel-grad" and np.linalg.norm(cur_grad) ** 2 <= eps * np.linalg.norm(start_grad) ** 2:
             return
 
         step = step_chooser(f, cur, cur_grad)
