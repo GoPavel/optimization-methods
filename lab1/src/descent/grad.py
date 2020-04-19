@@ -27,7 +27,7 @@ def generic_step_chooser(one_dim_search: Callable):
 
 def gradient_descent_iter(*, f: Callable[[np.ndarray], float], f_grad: Callable[[np.ndarray], np.ndarray], eps: float,
                           start: np.ndarray, step_chooser=_constant_step_chooser,
-                          _verbose: int = 10000, stop_criterion="grad") -> Iterator[Tuple[np.ndarray]]:
+                          _verbose: int = 10000, stop_criterion="rel-grad") -> Iterator[Tuple[np.ndarray]]:
     assert stop_criterion in {"value", "grad", "rel-grad"}
     assert 0 <= 1 - eps < 1
     cur = start

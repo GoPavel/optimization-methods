@@ -54,7 +54,8 @@ class LogisticModel:
 
         if self.solver == 'gradient':
             res = list(gradient_descent_iter(f=self._Q, f_grad=self._Q_grad, start=start_w,
-                                      step_chooser=generic_step_chooser(gold.search), eps=self.eps))
+                                             step_chooser=generic_step_chooser(gold.search), eps=self.eps,
+                                             stop_criterion="grad"))
             self.w = res[-1]
             self.num_steps = len(res)
         else:
@@ -63,7 +64,8 @@ class LogisticModel:
                     if self.errors >= self.max_errors:
                         self.w = start_w
                     else:
-                        res = list(newton_descent_iter(f=self._Q, f_grad=self._Q_grad, f_hess=self._Q_hess, start=start_w,
+                        res = list(
+                            newton_descent_iter(f=self._Q, f_grad=self._Q_grad, f_hess=self._Q_hess, start=start_w,
                                                 eps=self.eps))
                         self.w = res[-1]
                         self.num_steps = len(res)
