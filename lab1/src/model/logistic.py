@@ -1,6 +1,6 @@
 import one_dim_search.golden as gold
-from descent.grad import gradient_descent, generic_step_chooser
-from descent.newton import newton_descent
+from descent.grad import gradient_descent_iter, generic_step_chooser
+from descent.newton import newton_descent_iter
 import numpy as np
 import pandas as pd
 from scipy.special import expit
@@ -14,12 +14,14 @@ def _add_pseudo_coord(X: np.ndarray):
 
 
 class LogisticModel:
-    def __init__(self, X: np.ndarray, y: np.ndarray, alpha: float, solver: str, eps: float):
+    def __init__(self, X: np.ndarray, y: np.ndarray, alpha: float, solver: str, eps: float, max_errors: int = 100):
         assert solver in {'gradient', 'newton'}
         self.alpha = alpha
         self.solver = solver
         self.eps = eps
 
+        self.errors = 0
+        self.max_errors = max_errors
         self.X = _add_pseudo_coord(X)
         self.y = y
         self.objects_count, self.features_count = X.shape
@@ -51,11 +53,29 @@ class LogisticModel:
         self.A = np.transpose(self.X * self.y.reshape((self.objects_count, 1)))
 
         if self.solver == 'gradient':
-            self.w = gradient_descent(f=self._Q, f_grad=self._Q_grad, start=start_w,
-                                      step_chooser=generic_step_chooser(gold.search), eps=self.eps)
+            res = list(gradient_descent_iter(f=self._Q, f_grad=self._Q_grad, start=start_w,
+                                      step_chooser=generic_step_chooser(gold.search), eps=self.eps))
+            self.w = res[-1]
+            self.num_steps = len(res)
         else:
-            self.w = newton_descent(f=self._Q, f_grad=self._Q_grad, f_hess=self._Q_hess, start=start_w, eps=self.eps)
+            while True:
+                try:
+                    if self.errors >= self.max_errors:
+                        self.w = start_w
+                    else:
+                        res = list(newton_descent_iter(f=self._Q, f_grad=self._Q_grad, f_hess=self._Q_hess, start=start_w,
+                                                eps=self.eps))
+                        self.w = res[-1]
+                        self.num_steps = len(res)
+                    return
+                except ArithmeticError:
+                    self.errors += 1
+                    start_w = np.random.normal(loc=0., scale=1., size=self.features_count + 1)
             pass
+
+    @property
+    def num_errors(self):
+        return self.errors
 
     def predict(self, X):
         if self.w is None:
