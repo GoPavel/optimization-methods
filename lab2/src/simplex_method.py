@@ -31,7 +31,7 @@ def core(A, B) -> bool:
     n, m = A.shape
     while True:
         s = None
-        for j in range(1, m):
+        for j in range(1, n):
             if A[0, j] > 0:
                 s = j
                 break
@@ -56,7 +56,7 @@ def simplex_method(A, b, c):
     """
     Presume:
     forall i, b[i] >= 0
-    A, b, c : np.darray
+    A, b, c : np.ndarray
     Ax = b
     cx -> max
     """
@@ -71,41 +71,54 @@ def simplex_method(A, b, c):
     """
     f = max(-x[n+1] - ... -x[n+m])
     """
+    # add top row (0,0,0,...-x[n+1], -x[n+2]... -x[n+m]) and left row (0, b[0], b[1]...b[n])
     z = np.concatenate((np.zeros(1), np.zeros(n), np.repeat(1, m)))
-    Bz = np.array(range(m + 1, n + m))
+    Bz = np.arange(n + 1, n + m + 1)
     A = np.hstack((b.reshape((len(b), 1)), A))
     A = np.vstack((z.reshape((1, len(z))), A))
-    for r, i in enumerate(range(n+1, n+m+1), start=1):
-        gauss_step(A, r, i)
-    core(A, Bz)
-    for s in Bz:
+
+    # row[0] -= sum(row[1..m])
+    for i in range(1, m+1):
+        A[0] = A[0] - A[i]
+
+    # for r, i in enumerate(range(n+1, n+m+1), start=1):
+    #     gauss_step(A, r, i)
+
+
+    # set invariant B_z
+    for b_ind, s in enumerate(Bz):
         if n < s:
             r = None
             for i in range(1, m+1):
-                if A[i, s] == 1:
+                if r is None and A[i, s] == 1:
                     r = i
                 else:
-                    assert A[i, s] == 0
-            assert r is not None
+                    assert A[i, s] == 0, "in column more that 1 not zero element"
+            assert r is not None, "0-base vector"
+
             k = None
             for i in range(1, n+1):
                 if A[r, i] != 0:
                     k = i
                     break
             if k is None:
-                np.delete(A, r, 0)
+                A = np.delete(A, r, 0)
             else:
                 gauss_step(A, r, k)
-                Bz[s-1] = k
-    A = A[:, :n+1]
+                Bz[b_ind] = k
+
+    c = np.concatenate((np.zeros(1), -c))
+    A = np.vstack((c.reshape((1, len(c))), A[1:, 0:n+1]))
 
     for i, s in enumerate(Bz, start=1):
         if A[0, s] != 0:
-            A[0, s] -= A[i, s]
+            assert A[i, s] == 1
+            A[0] -= A[i] * A[0, s]
 
     first_opt_solution = np.zeros(n)
     for s in Bz:
-        first_opt_solution[s] = A[s, 0]
+        first_opt_solution[s - 1] = A[s, 0]
+
     # second phase
 
 if __name__ == "__main__":
