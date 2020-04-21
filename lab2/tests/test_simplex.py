@@ -7,7 +7,7 @@ def run_simplex(A, b, c):
     A = np.array(A)
     b = np.array(b)
     c = np.array(c)
-    x, res = simplex_method(A, b, c) if simplex_method(A, b, c) is not None else (None, None)
+    res, x = simplex_method(A, b, c) if simplex_method(A, b, c) is not None else (None, None)
     res_np = opt.linprog(c=-c, A_eq=A, b_eq=b, method='simplex')
     print(x)
     print(res)

@@ -154,11 +154,17 @@ def simplex_method(A, b, c, leq=False) -> Optional[Tuple[float, np.ndarray]]:
     if leq:
         A = np.hstack((A, np.eye(len(b))))
         c = np.hstack((c, np.zeros(len(b))))
+
     for i in range(len(b)):
         if b[i] < 0:
             b[i] *= -1
             A[i] *= -1
-    res, sol = _simplex_method(A, b, c)
+
+    t = _simplex_method(A, b, c)
+    if t is None:
+        return None
+    res, sol = t
+
     if leq:
         return res, sol[:-len(b)]
     return res, sol
