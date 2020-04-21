@@ -8,6 +8,8 @@ Simple simplex method from:
     http://www.itlab.unn.ru/uploads/opt/optBook1.pdf
 """
 
+EPS = 1e-15
+
 
 def gauss_step(A, r, s):
     n, m = A.shape
@@ -30,7 +32,7 @@ def core(A, B) -> bool:
     B - basis
     :return isSystem has bound solution
     """
-    assert np.all(A[1:, [0]] >= 0)
+    assert np.all(A[1:, [0]] >= -EPS)
 
     n, m = A.shape
     while True:
@@ -65,7 +67,7 @@ def _simplex_method(A, b, c) -> Optional[Tuple[float, np.ndarray]]:
     Ax = b
     cx -> max
     """
-    assert np.all(b >= 0)
+    assert np.all(b >= -EPS)
     m, n = A.shape
 
     # first phase
@@ -89,7 +91,7 @@ def _simplex_method(A, b, c) -> Optional[Tuple[float, np.ndarray]]:
 
     if not core(A, Bz):
         return None
-    if A[0, 0] < -1e-15:
+    if A[0, 0] < -EPS:
         return None
     # set invariant B_z
     for b_ind, s in enumerate(Bz):
