@@ -89,7 +89,7 @@ def _simplex_method(A, b, c) -> Optional[Tuple[float, np.ndarray]]:
 
     if not core(A, Bz):
         return None
-    if A[0, 0] < 0:
+    if A[0, 0] < -1e-15:
         return None
     # set invariant B_z
     for b_ind, s in enumerate(Bz):
