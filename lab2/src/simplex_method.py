@@ -35,7 +35,7 @@ def core(A, B) -> bool:
     n, m = A.shape
     while True:
         s = None
-        for j in range(1, n):
+        for j in range(1, m):
             if A[0, j] < 0:
                 s = j
                 break
@@ -90,7 +90,7 @@ def simplex_method(A, b, c) -> Optional[Any]:
     if not core(A, Bz):
         return None
     if A[0, 0] < 0:
-        return False
+        return None
     # set invariant B_z
     for b_ind, s in enumerate(Bz):
         if n < s:
