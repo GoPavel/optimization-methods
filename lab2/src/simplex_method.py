@@ -1,5 +1,5 @@
 import math
-from typing import Optional, Any
+from typing import Optional, Any, Tuple
 
 import numpy as np
 
@@ -57,7 +57,7 @@ def core(A, B) -> bool:
     return True
 
 
-def simplex_method(A, b, c) -> Optional[Any]:
+def _simplex_method(A, b, c) -> Optional[Tuple[float, np.ndarray]]:
     """
     Presume:
     forall i, b[i] >= 0
@@ -65,7 +65,7 @@ def simplex_method(A, b, c) -> Optional[Any]:
     Ax = b
     cx -> max
     """
-
+    assert np.all(b >= 0)
     m, n = A.shape
 
     # first phase
@@ -133,7 +133,35 @@ def simplex_method(A, b, c) -> Optional[Any]:
     for i, s in enumerate(Bz, start=1):
         solution[s - 1] = A[i, 0]
     res = A[0, 0]
-    return solution, res
+    return res, solution
+
+
+def simplex_method(A, b, c, leq=False) -> Optional[Tuple[float, np.ndarray]]:
+    """
+    <x, c> -> max
+    if leq:
+        Ax <= b
+    else:
+        Ax == b
+    """
+    if isinstance(A, list):
+        A = np.array(A)
+    if isinstance(b, list):
+        b = np.array(b)
+    if isinstance(c, list):
+        c = np.array(c)
+
+    if leq:
+        A = np.hstack((A, np.eye(len(b))))
+        c = np.hstack((c, np.zeros(len(b))))
+    for i in range(len(b)):
+        if b[i] < 0:
+            b[i] *= -1
+            A[i] *= -1
+    res, sol = _simplex_method(A, b, c)
+    if leq:
+        return res, sol[:-len(b)]
+    return res, sol
 
 
 def main():
@@ -142,9 +170,9 @@ def main():
                   [5, -4, 7, 3]])
     b = np.array([1, 1, 5])
     c = np.array([-1, -1, 0, -5])
-    x, res = simplex_method(A, b, c)
-    print(res)
-    print(x)
+    print(f'Sample:\nA:\n{A}\nb:{b}, c:{c}\n')
+    res, x = simplex_method(A, b, c, leq=False)
+    print(f'Minimum: {res} on {x}')
 
 
 if __name__ == "__main__":
