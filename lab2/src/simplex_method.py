@@ -1,5 +1,5 @@
 import math
-from typing import Optional, Any, Tuple
+from typing import Optional, Any, Tuple, Union
 
 import numpy as np
 
@@ -59,13 +59,14 @@ def core(A, B) -> bool:
     return True
 
 
-def _simplex_method(A, b, c) -> Optional[Tuple[float, np.ndarray]]:
+def _simplex_method(A, b, c) -> Optional[Tuple[float, np.ndarray, np.ndarray]]:
     """
     Presume:
     forall i, b[i] >= 0
     A, b, c : np.ndarray
     Ax = b
     cx -> max
+    :return None or (maximum, result_x, Basis)
     """
     assert np.all(b >= -EPS)
     m, n = A.shape
@@ -135,10 +136,12 @@ def _simplex_method(A, b, c) -> Optional[Tuple[float, np.ndarray]]:
     for i, s in enumerate(Bz, start=1):
         solution[s - 1] = A[i, 0]
     res = A[0, 0]
-    return res, solution
+    assert len(Bz) == m
+    return res, solution, Bz
 
 
-def simplex_method(A, b, c, leq=False) -> Optional[Tuple[float, np.ndarray]]:
+def simplex_method(A, b, c, leq=False, dual=False) -> Optional[Union[Tuple[float, np.ndarray],
+                                                                     Tuple[float, np.ndarray, np.ndarray]]]:
     """
     <x, c> -> max
     if leq:
@@ -165,11 +168,20 @@ def simplex_method(A, b, c, leq=False) -> Optional[Tuple[float, np.ndarray]]:
     t = _simplex_method(A, b, c)
     if t is None:
         return None
-    res, sol = t
+    maximum, sol, Bz = t
 
     if leq:
-        return res, sol[:-len(b)]
-    return res, sol
+        res = maximum, sol[:-len(b)]
+    else:
+        res = maximum, sol
+
+    if dual:  # experimental feature
+        A_dual = A[:, Bz]
+        c_dual = c[Bz]
+        sol_dual = c_dual.dot(np.linalg.inv(A_dual))
+        res = res[0], res[1], sol_dual
+
+    return res
 
 
 def main():
@@ -180,7 +192,7 @@ def main():
     c = np.array([-1, -1, 0, -5])
     print(f'Sample:\nA:\n{A}\nb:{b}, c:{c}\n')
     res, x = simplex_method(A, b, c, leq=False)
-    print(f'Minimum: {res} on {x}')
+    print(f'Maximum: {res} on {x}')
 
 
 if __name__ == "__main__":
